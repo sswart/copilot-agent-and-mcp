@@ -3,6 +3,10 @@
 > [!NOTE]
 > This is a demo repository to be used during the GitHub Copilot Agents and MCP training session.
 
+## User Manual
+
+For step-by-step usage instructions, see [MANUAL.md](./MANUAL.md).
+
 ## Functional
 
 Book Favorites is a full-stack web application that allows users to:
