@@ -111,6 +111,15 @@ describe('Favorites API', () => {
     expect(res.statusCode).toBe(400);
   });
 
+  it('POST /api/favorites should 404 for an unknown book', async () => {
+    const token = getToken('sandra');
+    const res = await request(app)
+      .post('/api/favorites')
+      .set('Authorization', 'Bearer ' + token)
+      .send({ bookId: '999' });
+    expect(res.statusCode).toBe(404);
+  });
+
   it('POST /api/favorites should 404 for non-existent user', async () => {
     const token = getToken('nouser');
     const res = await request(app)

@@ -16,6 +16,12 @@ export const addFavorite = createAsyncThunk('favorites/addFavorite', async ({ to
     },
     body: JSON.stringify({ bookId }),
   });
+
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.message || 'Failed to add favorite');
+  }
+
   const data = await res.json();
   return data.book;
 });
