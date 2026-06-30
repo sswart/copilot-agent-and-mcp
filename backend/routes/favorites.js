@@ -16,20 +16,22 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     const user = users.find(u => u.username === req.user.username);
     if (!user) return res.status(404).json({ message: 'User not found' });
     const books = readJSON(booksFile);
-    const favorites = books.filter(b => user.favorites.indexOf(b.id) !== -1);
+    const favoriteIds = new Set(user.favorites.map(String));
+    const favorites = books.filter(b => favoriteIds.has(String(b.id)));
     res.json(favorites);
   });
 
   router.post('/', limitFavoriteMutations, authenticateToken, (req, res) => {
-    const { bookId } = req.body;
-    if (!bookId) return res.status(400).json({ message: 'Book ID required' });
+    const { bookId: rawBookId } = req.body;
+    if (!rawBookId) return res.status(400).json({ message: 'Book ID required' });
+    const bookId = String(rawBookId);
     const users = readJSON(usersFile);
     const user = users.find(u => u.username === req.user.username);
     if (!user) return res.status(404).json({ message: 'User not found' });
     const books = readJSON(booksFile);
     const favoriteBook = books.find(book => book.id === bookId);
     if (!favoriteBook) return res.status(404).json({ message: 'Book not found' });
-    if (user.favorites.indexOf(bookId) === -1) {
+    if (user.favorites.findIndex(id => String(id) === bookId) === -1) {
       user.favorites.push(bookId);
       writeJSON(usersFile, users);
     }
@@ -37,12 +39,12 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
   });
 
   router.delete('/:bookId', limitFavoriteMutations, authenticateToken, (req, res) => {
-    const { bookId } = req.params;
+    const bookId = String(req.params.bookId);
     const users = readJSON(usersFile);
     const user = users.find(u => u.username === req.user.username);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const favoriteIndex = user.favorites.indexOf(bookId);
+    const favoriteIndex = user.favorites.findIndex(id => String(id) === bookId);
     if (favoriteIndex === -1) {
       return res.status(404).json({ message: 'Book not found in favorites' });
     }
