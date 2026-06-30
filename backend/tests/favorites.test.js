@@ -1,13 +1,14 @@
 const request = require('supertest');
 const express = require('express');
 const createApiRouter = require('../routes');
+const os = require('os');
 const path = require('path');
 
 const fs = require('fs');
 const sourceUsersFile = path.join(__dirname, '../data/users.json');
 const sourceBooksFile = path.join(__dirname, '../data/books.json');
-const usersFile = path.join(__dirname, '../data/test-users.json');
-const booksFile = path.join(__dirname, '../data/test-books.json');
+const usersFile = path.join(os.tmpdir(), 'copilot-agent-favorites-users.json');
+const booksFile = path.join(os.tmpdir(), 'copilot-agent-favorites-books.json');
 
 // Helper to get a valid JWT
 const jwt = require('jsonwebtoken');
@@ -41,6 +42,11 @@ describe('Favorites API', () => {
   beforeEach(() => {
     fs.copyFileSync(sourceUsersFile, usersFile);
     fs.copyFileSync(sourceBooksFile, booksFile);
+  });
+
+  afterAll(() => {
+    if (fs.existsSync(usersFile)) fs.unlinkSync(usersFile);
+    if (fs.existsSync(booksFile)) fs.unlinkSync(booksFile);
   });
 
   it('GET /api/favorites should fail without auth', async () => {
