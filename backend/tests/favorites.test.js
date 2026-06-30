@@ -7,8 +7,8 @@ const path = require('path');
 const fs = require('fs');
 const sourceUsersFile = path.join(__dirname, '../data/users.json');
 const sourceBooksFile = path.join(__dirname, '../data/books.json');
-const usersFile = path.join(os.tmpdir(), 'copilot-agent-favorites-users.json');
-const booksFile = path.join(os.tmpdir(), 'copilot-agent-favorites-books.json');
+const usersFile = path.join(os.tmpdir(), 'test-favorites-users.json');
+const booksFile = path.join(os.tmpdir(), 'test-favorites-books.json');
 
 // Helper to get a valid JWT
 const jwt = require('jsonwebtoken');
@@ -85,6 +85,7 @@ describe('Favorites API', () => {
       .send({ bookId: notFav.id });
     expect(res.statusCode).toBe(200);
     expect(res.body.message).toMatch(/added/);
+    expect(res.body.book).toMatchObject({ id: notFav.id });
   });
 
   it('POST /api/favorites should not duplicate favorites', async () => {
@@ -98,6 +99,7 @@ describe('Favorites API', () => {
       .send({ bookId: alreadyFav });
     expect(res.statusCode).toBe(200);
     expect(res.body.message).toMatch(/added/);
+    expect(res.body.book).toMatchObject({ id: alreadyFav });
   });
 
   it('POST /api/favorites should fail with missing bookId', async () => {

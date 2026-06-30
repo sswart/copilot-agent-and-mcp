@@ -18,11 +18,13 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     const users = readJSON(usersFile);
     const user = users.find(u => u.username === req.user.username);
     if (!user) return res.status(404).json({ message: 'User not found' });
+    const books = readJSON(booksFile);
+    const favoriteBook = books.find(book => book.id === bookId);
     if (user.favorites.indexOf(bookId) == -1) {
       user.favorites.push(bookId);
       writeJSON(usersFile, users);
     }
-    res.status(200).json({ message: 'Book added to favorites' });
+    res.status(200).json({ message: 'Book added to favorites', book: favoriteBook });
   });
 
   router.delete('/:bookId', authenticateToken, (req, res) => {

@@ -17,7 +17,6 @@ const Favorites = () => {
     }
 
     await dispatch(removeFavorite({ token, bookId }));
-    dispatch(fetchFavorites(token));
   };
 
   useEffect(() => {

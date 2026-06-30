@@ -8,7 +8,7 @@ export const fetchFavorites = createAsyncThunk('favorites/fetchFavorites', async
 });
 
 export const addFavorite = createAsyncThunk('favorites/addFavorite', async ({ token, bookId }) => {
-  await fetch('http://localhost:4000/api/favorites', {
+  const res = await fetch('http://localhost:4000/api/favorites', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -16,7 +16,8 @@ export const addFavorite = createAsyncThunk('favorites/addFavorite', async ({ to
     },
     body: JSON.stringify({ bookId }),
   });
-  return bookId;
+  const data = await res.json();
+  return data.book;
 });
 
 export const removeFavorite = createAsyncThunk('favorites/removeFavorite', async ({ token, bookId }) => {
@@ -45,7 +46,11 @@ const favoritesSlice = createSlice({
         state.items = action.payload;
       })
       .addCase(fetchFavorites.rejected, state => { state.status = 'failed'; })
-      .addCase(addFavorite.fulfilled, () => {})
+      .addCase(addFavorite.fulfilled, (state, action) => {
+        if (action.payload && !state.items.some(book => book.id === action.payload.id)) {
+          state.items.push(action.payload);
+        }
+      })
       .addCase(removeFavorite.fulfilled, (state, action) => {
         state.items = state.items.filter(book => book.id !== action.payload);
       });
