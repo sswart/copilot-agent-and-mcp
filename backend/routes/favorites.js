@@ -1,27 +1,16 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 
 function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, authenticateToken }) {
   const router = express.Router();
-  const mutationRequests = new Map();
-
-  function limitFavoriteMutations(req, res, next) {
-    const key = req.user.username;
-    const now = Date.now();
-    const current = mutationRequests.get(key);
-
-    if (!current || now - current.startedAt >= 60000) {
-      mutationRequests.set(key, { count: 1, startedAt: now });
-      return next();
-    }
-
-    if (current.count >= 30) {
-      return res.status(429).json({ message: 'Too many favorite updates. Please try again later.' });
-    }
-
-    current.count += 1;
-    mutationRequests.set(key, current);
-    next();
-  }
+  const limitFavoriteMutations = rateLimit({
+    windowMs: 60000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: req => req.user.username,
+    message: { message: 'Too many favorite updates. Please try again later.' },
+  });
 
   router.get('/', authenticateToken, (req, res) => {
     const users = readJSON(usersFile);
