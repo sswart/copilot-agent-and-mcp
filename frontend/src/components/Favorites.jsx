@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchFavorites } from '../store/favoritesSlice';
+import { fetchFavorites, removeFavorite } from '../store/favoritesSlice';
 import { useNavigate } from 'react-router-dom';
 
 const Favorites = () => {
@@ -9,6 +9,15 @@ const Favorites = () => {
   const status = useAppSelector(state => state.favorites.status);
   const token = useAppSelector(state => state.user.token);
   const navigate = useNavigate();
+
+  const handleRemoveFavorite = async (bookId) => {
+    if (!token) {
+      navigate('/');
+      return;
+    }
+
+    await dispatch(removeFavorite({ token, bookId }));
+  };
 
   useEffect(() => {
     if (!token) {
@@ -45,6 +54,12 @@ const Favorites = () => {
           {favorites.map(book => (
             <li key={book.id}>
               <strong>{book.title}</strong> by {book.author}
+              <button
+                onClick={() => handleRemoveFavorite(book.id)}
+                style={{ marginLeft: '1rem' }}
+              >
+                Remove from Favorites
+              </button>
             </li>
           ))}
         </ul>

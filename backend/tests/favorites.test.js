@@ -4,6 +4,8 @@ const createApiRouter = require('../routes');
 const path = require('path');
 
 const fs = require('fs');
+const sourceUsersFile = path.join(__dirname, '../data/users.json');
+const sourceBooksFile = path.join(__dirname, '../data/books.json');
 const usersFile = path.join(__dirname, '../data/test-users.json');
 const booksFile = path.join(__dirname, '../data/test-books.json');
 
@@ -36,6 +38,11 @@ app.use('/api', createApiRouter({
 }));
 
 describe('Favorites API', () => {
+  beforeEach(() => {
+    fs.copyFileSync(sourceUsersFile, usersFile);
+    fs.copyFileSync(sourceBooksFile, booksFile);
+  });
+
   it('GET /api/favorites should fail without auth', async () => {
     const res = await request(app).get('/api/favorites');
     expect(res.statusCode).toBe(401);
@@ -109,6 +116,48 @@ describe('Favorites API', () => {
     const res = await request(app)
       .post('/api/favorites')
       .send({ bookId: '1' });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('DELETE /api/favorites/:bookId should remove a book from favorites', async () => {
+    const token = getToken('sandra');
+    const users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
+    const sandra = users.find(u => u.username === 'sandra');
+    const favoriteToRemove = sandra.favorites[0];
+
+    const res = await request(app)
+      .delete(`/api/favorites/${favoriteToRemove}`)
+      .set('Authorization', 'Bearer ' + token);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toMatch(/removed/);
+
+    const updatedUsers = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
+    const updatedSandra = updatedUsers.find(u => u.username === 'sandra');
+    expect(updatedSandra.favorites).not.toContain(favoriteToRemove);
+  });
+
+  it('DELETE /api/favorites/:bookId should return 404 for a book not in favorites', async () => {
+    const token = getToken('sandra');
+    const res = await request(app)
+      .delete('/api/favorites/999')
+      .set('Authorization', 'Bearer ' + token);
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body.message).toMatch(/not found in favorites/i);
+  });
+
+  it('DELETE /api/favorites/:bookId should 404 for non-existent user', async () => {
+    const token = getToken('nouser');
+    const res = await request(app)
+      .delete('/api/favorites/1')
+      .set('Authorization', 'Bearer ' + token);
+
+    expect(res.statusCode).toBe(404);
+  });
+
+  it('DELETE /api/favorites/:bookId should fail without auth', async () => {
+    const res = await request(app).delete('/api/favorites/1');
     expect(res.statusCode).toBe(401);
   });
 });
