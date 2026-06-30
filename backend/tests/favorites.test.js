@@ -7,8 +7,8 @@ const path = require('path');
 const fs = require('fs');
 const sourceUsersFile = path.join(__dirname, '../data/users.json');
 const sourceBooksFile = path.join(__dirname, '../data/books.json');
-const usersFile = path.join(os.tmpdir(), 'test-favorites-users.json');
-const booksFile = path.join(os.tmpdir(), 'test-favorites-books.json');
+const usersFile = path.join(os.tmpdir(), `test-favorites-users-${process.pid}.json`);
+const booksFile = path.join(os.tmpdir(), `test-favorites-books-${process.pid}.json`);
 
 // Helper to get a valid JWT
 const jwt = require('jsonwebtoken');

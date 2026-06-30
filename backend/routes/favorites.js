@@ -5,10 +5,9 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
   const router = express.Router();
   const limitFavoriteMutations = rateLimit({
     windowMs: 60000,
-    max: 30,
+    max: 15,
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: req => req.user.username,
     message: { message: 'Too many favorite updates. Please try again later.' },
   });
 
@@ -21,7 +20,7 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     res.json(favorites);
   });
 
-  router.post('/', authenticateToken, limitFavoriteMutations, (req, res) => {
+  router.post('/', limitFavoriteMutations, authenticateToken, (req, res) => {
     const { bookId } = req.body;
     if (!bookId) return res.status(400).json({ message: 'Book ID required' });
     const users = readJSON(usersFile);
@@ -37,7 +36,7 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     res.status(200).json({ message: 'Book added to favorites', book: favoriteBook });
   });
 
-  router.delete('/:bookId', authenticateToken, limitFavoriteMutations, (req, res) => {
+  router.delete('/:bookId', limitFavoriteMutations, authenticateToken, (req, res) => {
     const { bookId } = req.params;
     const users = readJSON(usersFile);
     const user = users.find(u => u.username === req.user.username);
